@@ -1,2 +1,2 @@
 # VirtualHPC
-Building a HPC cluster based on virtual machines.
+Configuration files to Build a small HPC cluster based on virtual machines.
