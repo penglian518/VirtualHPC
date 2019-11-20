@@ -31,15 +31,14 @@ This step could be done with the init VB installation. If so, skip this step.
 2. VM --> Network --> Adapter 2 --> Host-only Adapter --> vboxnet0  
 3. In VM
   
-    ip addr show # find the new NIC, in this case, it is enp0s8
-    cd /etc/sysconfig/network-scripts
-    cp ifcfg-enp0s3 ifcfg-enp0s8
-    vi ifcfg-enp0s8
-rename enp0s3 to enp0s8, delete the uuid, and add the following lines
+    ip addr show # find the new NIC, in this case, it is enp0s8  
+    cd /etc/sysconfig/network-scripts  
+    cp ifcfg-enp0s3 ifcfg-enp0s8  
+    vi ifcfg-enp0s8  # rename enp0s3 to enp0s8, delete the uuid, and add the following lines
  
-    BOOTPROTO="static"
-    IPADDR=192.168.56.101
-    NETMASK=255.255.255.0
+        BOOTPROTO="static"
+        IPADDR=192.168.56.101
+        NETMASK=255.255.255.0
 4. reboot the system
 5. ssh root@192.168.56.101
 
