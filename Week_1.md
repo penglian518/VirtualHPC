@@ -45,10 +45,10 @@ This step could be done with the init VB installation. If so, skip this step.
 Note: This command update the kernel to the version published by RedHat. [Here](https://www.cyberciti.biz/faq/how-to-install-latest-kernel-on-centos-linux-7-using-yum-command/) is the steps to install the latest kernel.
 ### Apply all security updates only. (Not all the updates)
     yum -y update --security
-Ref: [Redhat website](https://access.redhat.com/solutions/10021).
+More details: [Redhat website](https://access.redhat.com/solutions/10021).
 ### Add the EPEL (Extra Packages for Enterprise Linux) repositories
     yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-Ref: [Fedora wiki](https://fedoraproject.org/wiki/EPEL)
+More details: [Fedora wiki](https://fedoraproject.org/wiki/EPEL)
 ### Add MySQL
     # Add MySQL5.7 repo
     yum -y install https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
@@ -58,7 +58,7 @@ Ref: [Fedora wiki](https://fedoraproject.org/wiki/EPEL)
     yum -y remove mysql
 ### Install MariaDB with yum
     yum -y install mariadb-server
-Ref: [MariaDB wike](https://mariadb.com/kb/en/library/yum/)
+More details: [MariaDB wiki](https://mariadb.com/kb/en/library/yum/)
 ### Install Singularity3.5 from source code
     # install system dependencies
     yum groupinstall -y 'Development Tools'
@@ -79,6 +79,5 @@ Ref: [MariaDB wike](https://mariadb.com/kb/en/library/yum/)
     make install
     cd ../../../singularity/bin/
     ./singularity version
+More details: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob/master/INSTALL.md)  
 
-
-Ref: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob/master/INSTALL.md)  
