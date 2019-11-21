@@ -81,3 +81,77 @@ More details: [MariaDB wiki](https://mariadb.com/kb/en/library/yum/)
     ./singularity version
 More details: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob/master/INSTALL.md)  
 
+## Exercise 2
+### create users and groups
+    groupadd surgery
+    useradd -m -g surgery henry
+    useradd -m -g surgery maria
+    
+    groupadd psychiatry
+    useradd -m -g psychiatry luis
+    useradd -m -g psychiatry alexandra
+
+    groupadd busadmin
+    useradd -m -g busadmin emil
+    
+    groupadd collaboration
+    usermod -a -G collaboration maria
+    usermod -a -G collaboration luis
+
+    id lui
+    getent group # show all groups and gids
+    
+## Exercise 3
+### create a project directory
+    cd /home
+    # group members can read
+    mkdir surgery_group
+    chown -R root.surgery surgery_group
+    chmod -R 750  surgery_group
+    
+    mkdir psychiatry_group
+    chown -R root.psychiatry psychiatry_group
+    chmod -R 750  psychiatry_group
+    
+    # group members can write
+    chmod -R 770 surgery_group/ psychiatry_group/
+
+    # newly created file belongs to the group
+    mkdir collaboration_group
+    chown -R root.collaboration collaboration_group
+    chmod -R 770  collaboration_group
+    chmod -R g+s collaboration_group
+    
+    # set ACL on the collaboration group
+    setfacl -d -Rm u:emil:r collaboration_group/
+TODO: fix ACL!
+More details: [how to configure ACL](https://www.2daygeek.com/how-to-configure-access-control-lists-acls-setfacl-getfacl-linux/)
+
+## Exercise 4
+LVM: Logical Volume Manager, a system of managing logical volumes, or filesystems.
+PV: Physical Volumes, the disks ...
+VG: Volume Groups, a collect of PVs and LVs
+LV: Logical Volumes, not physical disks, can span across multiple disks
+
+LUN: logic units number,  
+HBA: Host Bus Adapters, the interface card that connects the host to a fiber channel network or devices
+
+### add a new disk
+    # partition the new disk and assign 8e (Linux LVM) as the system id
+    fdisk /dev/sdb # n p 1 t 8e w
+    # create new pv
+    pvcreate /dev/sdb1 
+    # show the current VG and find the VG Name ('centos' in this case)
+    vgdisplay
+    # extend the current VG to include the new pv
+    vgextend centos /dev/sdb1 
+    # scan and see the new pv and VG
+    pvscan
+    # show the current LV and get the LV Path ('/dev/centos/root')
+    lvdisplay
+    # create a new LV with 2G from the VG centos
+    lvcreate -n newLV -L +2G centos
+    # extend to use all the space of the the new PV
+    lvextend -l 100%PVS /dev/centos/newLV
+
+    
