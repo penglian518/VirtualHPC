@@ -60,16 +60,25 @@ Ref: [Fedora wiki](https://fedoraproject.org/wiki/EPEL)
     yum -y install mariadb-server
 Ref: [MariaDB wike](https://mariadb.com/kb/en/library/yum/)
 ### Install Singularity3.5 from source code
-    mkdir -p tools/src
-    cd tools/src
-    curl https://codeload.github.com/sylabs/singularity/tar.gz/v3.5.0 > singularity-3.5.0.tar.gz
-    tar zxf singularity-3.5.0.tar.gz
-    cd singularity-3.5.0
-    
     # install system dependencies
     yum groupinstall -y 'Development Tools'
     yum install -y epel-release
+    
+    # install golang
     yum install -y golang openssl-devel libuuid-devel libseccomp-devel squashfs-tools cryptsetup
     
-Ref: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob/master/INSTALL.md)
-TODO: finish the Singularity installation
+    # install singularity v3.5.0
+    mkdir -p tools/src
+    cd tools/src
+    git clone https://github.com/sylabs/singularity.git
+    cd singularity
+    git checkout v3.5.0
+    ./mconfig --prefix=/root/tools/singularity
+    cd builddir/
+    make
+    make install
+    cd ../../../singularity/bin/
+    ./singularity version
+
+
+Ref: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob/master/INSTALL.md)  
