@@ -185,3 +185,6 @@ application layer; the data encryption uses Layer 6, presentation layer. The tra
 over a TCP/IP connection. Therefore, the TCP and IP runs on the Layer 4, transport layer, and Layer 3, network layer of 
 the OSI model, respectively. The connection protocol of SSH multiplexes the encrypted tunnel into logical channels, 
 which probably using the Layer 5, session layer of the OSI model.   
+
+More details, [XYZ Network](http://xyznetwork.blogspot.com/2009/07/icnd1-break-down-osi-model-review.html?) and 
+[Networksocery](http://www.networksorcery.com/enp/protocol/ssh.htm)
