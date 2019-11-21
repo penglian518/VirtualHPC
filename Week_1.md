@@ -54,10 +54,19 @@ More details: [Fedora wiki](https://fedoraproject.org/wiki/EPEL)
     yum -y install https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
     # Install MySQL Server
     yum -y install mysql-community-server
-    # Remove MySQL
+    
+    # To completely remove MySQL
     yum -y remove mysql
+    yum -y install yum-plugin-remove-with-leaves
+    yum -y remove mysql-server --remove-leaves
+    yum list installed | grep -i mysql
+    yum -y remove mysql57-community-release mysql-community*
+    yum list installed | grep -i mysql
+    rm -rf /var/lib/mysql/
+
+More details: [Link](https://linoxide.com/linux-how-to/completely-remove-mysql-properly-install-mariadb-10/)
 ### Install MariaDB with yum
-    yum -y install mariadb-server
+    yum -y install mariadb-server mariadb-client
 More details: [MariaDB wiki](https://mariadb.com/kb/en/library/yum/)
 ### Install Singularity3.5 from source code
     # install system dependencies
@@ -98,7 +107,7 @@ More details: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob
     usermod -a -G collaboration maria
     usermod -a -G collaboration luis
 
-    id lui
+    id luis
     getent group # show all groups and gids
     
 ## Exercise 3
@@ -120,21 +129,22 @@ More details: [Singularity3.5 Github](https://github.com/sylabs/singularity/blob
     mkdir collaboration_group
     chown -R root.collaboration collaboration_group
     chmod -R 770  collaboration_group
-    chmod -R g+s collaboration_group
+    chmod -R g+s collaboration_group  # copy from outside will inherit the permissions, but mv won't!
     
     # set ACL on the collaboration group
-    setfacl -d -Rm u:emil:r collaboration_group/
-TODO: fix ACL!
+    setfacl -Rm u:emil:rx collaboration_group/      # note: cd to a folder requires x permission!
+    setfacl -d -Rm u:emil:rx collaboration_group/
+    
 More details: [how to configure ACL](https://www.2daygeek.com/how-to-configure-access-control-lists-acls-setfacl-getfacl-linux/)
 
 ## Exercise 4
-LVM: Logical Volume Manager, a system of managing logical volumes, or filesystems.
-PV: Physical Volumes, the disks ...
-VG: Volume Groups, a collect of PVs and LVs
-LV: Logical Volumes, not physical disks, can span across multiple disks
+LVM: Logical Volume Manager, a system of managing logical volumes, or filesystems.  
+PV: Physical Volumes, the disks ...  
+VG: Volume Groups, a collect of PVs and LVs  
+LV: Logical Volumes, not physical disks, can span across multiple disks  
 
 LUN: logic units number,  
-HBA: Host Bus Adapters, the interface card that connects the host to a fiber channel network or devices
+HBA: Host Bus Adapters, the interface card that connects the host to a fiber channel network or devices  
 
 ### add a new disk
     # partition the new disk and assign 8e (Linux LVM) as the system id
@@ -154,4 +164,24 @@ HBA: Host Bus Adapters, the interface card that connects the host to a fiber cha
     # extend to use all the space of the the new PV
     lvextend -l 100%PVS /dev/centos/newLV
 
-    
+### OSI Model of SSH
+OSI, Open Systems Interconnection, is a framework for building protocols and to help people understand the process 
+around network communications and their standards. There are 7 layers.  
+
+* Layer 7, Application Layer, provide services to apps outside the OSI model (e.g. authentication)  
+* Layer 6, Presentation Layer, provide a way for data to be presented, e.g. formatting data, data encryption.  
+* Layer 5, Session Layer, manager of the communication between two hosts. Handles the creation, maintenance, and ear-down
+of sessions between two hosts.   
+* Layer 4, Transport Layer, segments data (sending), reassembles data into a data stream (receiving), data transport, 
+session multiplexing. (e.g. TCP and UDP)  
+* Layer 3, Network Layer, the routing layer, find the best path from the local router to a given destination. (e.g. IP)  
+* Layer 2, Data link Layer, defines how data is formatted for transmission and how access to the network is controlled, 
+how devices on a media communicate with each other, e.g. addressing, signalling control. (LLC, MAC sublayer)
+* Layer 1, Physical Layer, physical link between end systems. Handles the actual data transmission (a lot of ones and zeros).
+
+SSH is a protocol for secure remote login and data transport. It's a application layer protocol, but different 
+components relate to different layers in OSI model. For example, authentication and user interaction use Layer 7, 
+application layer; the data encryption uses Layer 6, presentation layer. The transportation layer of SSH typically runs
+over a TCP/IP connection. Therefore, the TCP and IP runs on the Layer 4, transport layer, and Layer 3, network layer of 
+the OSI model, respectively. The connection protocol of SSH multiplexes the encrypted tunnel into logical channels, 
+which probably using the Layer 5, session layer of the OSI model.   
