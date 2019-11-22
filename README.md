@@ -6,3 +6,12 @@ Configuration files to build a small HPC cluster based on virtual machines.
 * Network: NAT + host-only
 * Proxy
 * ssh passwordless login
+
+
+# [Week 3: Storage: Redundancy, Network Storage Protocols & Performance.](Week_3.md)
+* Storage Redundancy
+* RAID 6 Configuration
+* NFS Server Configuration
+* NFS Client Configuration
+* SAMBA Server & Client Configuration
+* Big Concepts in Network Storage
