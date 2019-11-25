@@ -277,4 +277,21 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
         //nfsserver/new_home /shared_home_smb cifs username=emil,password=emil123456,soft,rw 0 0
     mount -a
     
-    
+## Big Concepts
+###NAS, network attached storage
+Share data within small network, "storage + a router", one failure will affect the 
+whole network. 
+###SAN, storage area network
+A high speed network that stores and provides access to large amounts of data. "disk arrays + switch + servers", 
+Fault tolerant, scalable. 
+###NFS
+A file system that allows users to access files across a network and treat them as if they resided in a local file 
+directory. "Client ---- network (NFS protocol) ---- Server"
+###Parallel file system
+* Data is striped and distributed to multiple storage devices, with redundant.  
+* A shared global namespace to facilitate data access
+* Accessible from many clients
+* Operated over high-speed networks
+* Optimized I/O path for maximum bandwidth
+* Separated Metadata server and object storage servers (in Lustre).
+* Highly scalable 
