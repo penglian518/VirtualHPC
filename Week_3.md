@@ -125,14 +125,27 @@ the data.
     # install the packages
     yum -y install nfs-utils
     # write the configuration file for NFS
-    vi /etc/exports # add the following line "/new_home	192.168.56.*(rw, sync, root_squash)"
+    vi /etc/exports # add the following line "/new_home	192.168.56.*(rw,sync,root_squash)"
+    chmod 777 /new_home
     # restart the services
     systemctl restart rpcbind  # RPC, Remote Procedure Call, required by NFS
     systemctl enable rpcbind
     systemctl start nfs-server
     systemctl enable nfs-server
+    # check the nfs server
+    systemctl status nfs
     # check the export list
     showmount -e localhost
+    
+    # firewall
+    systemctl stop firewalld
+    systemctl disable firewalld
+    
+    # or 
+    firewall-cmd --add-service=nfs --zone=internal --permanent
+    firewall-cmd --add-service=mountd --zone=internal --permanent
+    firewall-cmd --add-service=rpc-bind --zone=internal --permanent
+
 
 options for the host in /etc/exports
 * ro(default): read-only
@@ -155,7 +168,113 @@ Use 'exportfs' command to refresh the NFS settings without restarting the NFS se
 * -v verbose
 * -o file-systems add new directories to be exported that are not in /etc/exports
 
-TODO: prevent the remote root user from mounting? How?
+
+More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/nfs-serverconfig), 
+[Geek Diary](https://www.thegeekdiary.com/centos-rhel-7-configuring-an-nfs-server-and-nfs-client/)
+
+## NFS client configuration 
+    # install the packages
+    yum -y install nfs-utils
+    # create a mount point
+    mkdir /shared_home
+    
+    # define nfs host
+    vi /etc/hosts  
+        192.168.56.103 nfsserver
+    
+    # mount
+    mount -t nfs nfsserver:/new_home /shared_home
+    # umount
+    umount /shared_home
+    
+    # write the fstable, so that it will mount during every reboot
+    vi /etc/fstable   
+        nfsserver:/new_home	/shared_home	nfs	defaults	0 0
+    # mount all listed in fstable
+    mount -a
+    
+    # test with other users
+    sudo - emil
+    mkdir /shared_home/a
+    ll /shared_home/
+
+### Autofs configuration for NFS
+    # install packages
+    yum -y install autofs
+    
+    # change the default timeout options (default is 600s)
+    # this step can be skipped, one can add the options to the /etc/auto.master as well
+    vi /etc/sysconfig/autofs 
+        OPTIONS="--timeout=60"
+    systemctl restart autofs
+    systemctl status autofs
+    
+    # config /etc/auto.master, add the following line
+    vi /etc/auto.master  
+        # /- ----> (direct map), use absolutaly path
+        # /etc/auto.nfs ---->  configuration file
+        /-	/etc/auto.nfs --timeout=60 
+
+    # config /etc/auto.nfs
+    vi /etc/auto.nfs        
+        # /shared_home ----> mount point
+        # -rw,soft,intr ----> options
+        # nfsserver:/new_home ----> remote server
+        /shared_home	-rw,soft,intr	nfsserver:/new_home	
+
+    # restart autofs
+    systemctl restart autofs
+    # check to see if it works
+    ll /shared_home
+    df -h
+    less /var/log/messages
 
 
-More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/nfs-serverconfig)
+## SAMBA server configuration
+    # install the packages
+    yum -y install samba samba-client
+    # start and enable the smb service
+    systemctl start smb     # smb listens on TCP ports 139, 445
+    systemctl start nmb     # nmb, NetBIOS over IP, UDP 137
+    systemctl enable smb
+    systemctl enable nmb
+    
+    # config the firewall or disable it
+    firewall-cmd --permanent --zone=public --add-service=samba
+    firewall-cmd --zone=public --add-service=samba
+    
+    # add user to SAMBA database and set password
+    smbpasswd -a emil
+    # check the status of the user
+    smbpasswd -e emil
+    # config the smb service by adding the following block
+    vi /etc/samba/smb.conf
+        [new_home]
+            path = /new_home                # folder to share
+            browseable = yes                # 
+            read only = no                  #
+            writable = yes                  #
+            guest ok = no                   #
+            force create mode = 0660        #
+            force directory mode = 2770     #
+            valid users = emil @collaboration   # users, or groups (user "@" as prefix) 
+    # restart the services
+    systemctl restart smb
+    systemctl restart nmb
+
+## SAMBA client configuration
+    # install the packages
+    yum -y install samba-client cifs-utils
+    # create a directory to mount
+    mkdir /shared_home_smb
+    # mount 
+    mount -t cifs -o username=emil,password=emil123456 //nfsserver/new_home /shared_home_smb
+    ll /shared_home_smb/
+    touch /shared_home_smb/c
+    
+    # write the fstable, so that it will mount during every reboot
+    vi /etc/fstable   
+        //nfsserver/new_home /shared_home_smb cifs username=emil,password=emil123456,soft,rw 0 0
+    mount -a
+    
+    
