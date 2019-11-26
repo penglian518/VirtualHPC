@@ -32,8 +32,8 @@ Fault tolerance: 0
 Exactly copy (mirror) a set of data on two or more disks.  
 
 Disks: n >= 2  
-Capacity: 1
-I/O Speed: 1 
+Capacity: 1  
+I/O Speed: 1  
 Redundancy: n  
 Parity: 0  
 Fault tolerance: n   
@@ -42,11 +42,11 @@ Fault tolerance: n
 A combination of RAID 1 and RAID 0.  
 
 Disks: n >= 4  
-Capacity: n/2
-I/O Speed: n/2 
+Capacity: n/2  
+I/O Speed: n/2  
 Redundancy: 1  
 Parity: 0  
-Fault tolerance: 1   
+Fault tolerance: 1     
 
 #### RAID 5 (striping and distribute parity)
 Strip data from a block level and distribute the parity data among all the drives. If one disk is broken, the data can 
@@ -54,10 +54,10 @@ be fully recovered by calculating the distributed parity from the other disks. I
 the array fails.    
 
 Disks: n >= 3  
-Capacity: n-1
-I/O Speed: 1< speed <n-1  
+Capacity: n-1  
+I/O Speed: 1< speed <n-1    
 Redundancy: 1  
-Parity: distributed across n disks   
+Parity: distributed across n disks     
 Fault tolerance: 1   
 
 #### RAID 6 (striping and distribute TWO parities)
@@ -66,8 +66,8 @@ the same time, the data can still be fully recovered by calculating the distribu
 If three or more broken at the same time, the array fails.    
 
 Disks: n >= 4  
-Capacity: n-2
-I/O Speed: 1< speed < n-2  
+Capacity: n-2  
+I/O Speed: 1< speed < n-2    
 Redundancy: 2  
 Parity: distributed across n disks   
 Fault tolerance: 2   
@@ -187,10 +187,10 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
     # umount
     umount /shared_home
     
-    # write the fstable, so that it will mount during every reboot
-    vi /etc/fstable   
+    # write the fstab, so that it will mount during every reboot
+    vi /etc/fstab   
         nfsserver:/new_home	/shared_home	nfs	defaults	0 0
-    # mount all listed in fstable
+    # mount all listed in fstab
     mount -a
     
     # test with other users
@@ -274,8 +274,8 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
     ll /shared_home_smb/
     touch /shared_home_smb/c
     
-    # write the fstable, so that it will mount during every reboot
-    vi /etc/fstable   
+    # write the fstab, so that it will mount during every reboot
+    vi /etc/fstab   
         //nfsserver/new_home /shared_home_smb cifs username=emil,password=emil123456,soft,rw 0 0
     mount -a
     
