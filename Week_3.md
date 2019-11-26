@@ -17,7 +17,7 @@ hardware defects.
 * Striping, split the data between two or more disks
 * Metadata, raw data, ones and zeros? In Lustre it means file names, paths (namespace), indexes etc. 
 
-###Common types of RAID
+### Common types of RAID
 #### RAID 0 (striping)
 Strip/split data evenly across two or more disks, without redundancy, parity, or fault tolerance.  
 
@@ -120,6 +120,29 @@ The RAID implemented with Mdadm is software RAID. It uses some CPU resources to 
 slower than the hardware RAID. Hardware RAID requires RAID card/controller to read/write data. It's faster than soft 
 RAID, but the cost is higher. Also, once the RAID card is broken, have to find the same type of RAID card to recover
 the data.
+
+## XFS vs Ext4
+### XFS
+XFS was originally developed in the early 1990s by SGI. It is a 64-bit journaling file system that supports very 
+large files and file systems on a single host. For example, Red Hat’s maximum supported XFS file system image is 100TB 
+for RHEL 5, 300TB for RHEL 6, and 500TB for RHEL 7. 
+However, XFS has a relatively poor performance for single threaded, metadata-intensive workloads, for example, 
+a workload that creates or deletes large numbers of small files in a single thread.
+
+### Ext4
+Ext4 is the fourth generation of the Ext file system family. 
+A more compact and efficient way to track utilized space in a file system is the usage of extent-based metadata and
+ the delayed allocation feature. File system repair time (fsck) in Ext4 is much faster than in Ext2 and Ext3 (up to a 
+ six-fold increase) Red Hat’s maximum supported size for Ext4 is 16TB in both RHEL 5 and 6, and 50TB in RHEL 7.
+
+If both your server and your storage device are large, XFS is likely to be the best choice. 
+Even with smaller storage arrays, XFS performs very well when the average file sizes are large 
+(for example, hundreds of megabytes in size). Compared to Ext3, Ext4 has a faster file system check and repair times and
+ higher streaming read and write performance on high-speed devices.  In general, Ext3 or Ext4 is better if 
+ an application uses a single read/write thread and small files, 
+ while XFS shines when an application uses multiple read/write threads and bigger files.
+
+More details: [Red Hat articles](https://access.redhat.com/articles/3129891)
 
 ## NFS server configuration 
     # install the packages
