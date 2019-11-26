@@ -15,7 +15,7 @@ hardware defects.
 ### Concepts
 * Mirroing, fully copy all the data from one disk to the other one  
 * Striping, split the data between two or more disks
-* Metadata, raw data, ones and zeros 
+* Metadata, raw data, ones and zeros? In Lustre it means file names, paths (namespace), indexes etc. 
 
 ###Common types of RAID
 #### RAID 0 (striping)
@@ -219,6 +219,8 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
     vi /etc/auto.nfs        
         # /shared_home ----> mount point
         # -rw,soft,intr ----> options
+        # soft ----> report an error but don't wait for the NFS server if it is unavailable.
+        # intr ----> allow NFS requests to be interrupted if the server goes down or not reachable.
         # nfsserver:/new_home ----> remote server
         /shared_home	-rw,soft,intr	nfsserver:/new_home	
 
@@ -278,16 +280,16 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
     mount -a
     
 ## Big Concepts
-###NAS, network attached storage
+###NAS, network attached storage  
 Share data within small network, "storage + a router", one failure will affect the 
-whole network. 
-###SAN, storage area network
+whole network.   
+###SAN, storage area network  
 A high speed network that stores and provides access to large amounts of data. "disk arrays + switch + servers", 
-Fault tolerant, scalable. 
-###NFS
+Fault tolerant, scalable.   
+###NFS  
 A file system that allows users to access files across a network and treat them as if they resided in a local file 
-directory. "Client ---- network (NFS protocol) ---- Server"
-###Parallel file system
+directory. "Client ---- network (NFS protocol) ---- Server"  
+###Parallel file system   
 * Data is striped and distributed to multiple storage devices, with redundant.  
 * A shared global namespace to facilitate data access
 * Accessible from many clients
