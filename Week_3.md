@@ -280,16 +280,16 @@ More details: [Redhat Doc](https://access.redhat.com/documentation/en-us/red_hat
     mount -a
     
 ## Big Concepts
-###NAS, network attached storage  
+### NAS, network attached storage  
 Share data within small network, "storage + a router", one failure will affect the 
 whole network.   
-###SAN, storage area network  
+### SAN, storage area network  
 A high speed network that stores and provides access to large amounts of data. "disk arrays + switch + servers", 
 Fault tolerant, scalable.   
-###NFS  
+### NFS  
 A file system that allows users to access files across a network and treat them as if they resided in a local file 
 directory. "Client ---- network (NFS protocol) ---- Server"  
-###Parallel file system   
+### Parallel file system   
 * Data is striped and distributed to multiple storage devices, with redundant.  
 * A shared global namespace to facilitate data access
 * Accessible from many clients
@@ -297,3 +297,24 @@ directory. "Client ---- network (NFS protocol) ---- Server"
 * Optimized I/O path for maximum bandwidth
 * Separated Metadata server and object storage servers (in Lustre).
 * Highly scalable 
+#### Lustre
+Good scalability tens of thousands of clients, tens of PB of storage, peak speed 2 TB/s tested in ORNL clusters.
+* One or more metadata server (MDS) with one or more metadata target (MDT) devices. Stores namespcace metadata, such as 
+filenames, directories, access permissions, and file layout. MDS of Lustre doesn't involve file I/O.
+* One or more object storage server (OSS) stores one or more object storage target (OST) devices. 
+* Clients. Accessible to universal namespaces of all files, almost no limits (>25 000 clients tested)
+
+#### GPFS (IBM General Parallel File System, renamed to IBM Spectrum Scale in 2015)
+* Distributed metadata, including the directory tree. There is no directory controller or index server.
+* No limit on the number of files in a single directory
+* Distributed locking. e.g. locking for exclusive file access
+* Partition Aware. A failure of the network may only affect a portion of the system, the rest of the file system still 
+alive. (Heartbeat protocol)
+* Online filesystem maintenance. 
+
+#### BeeGFS
+Focus on Scalability, flexibility, and good usability
+* Metadata Server. Metadata distributed over several servers on a directory level, with each server storing a part of
+the complete file system tree.
+* Storage Server. Save striped files
+* Clients
