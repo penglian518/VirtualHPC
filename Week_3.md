@@ -121,29 +121,6 @@ slower than the hardware RAID. Hardware RAID requires RAID card/controller to re
 RAID, but the cost is higher. Also, once the RAID card is broken, have to find the same type of RAID card to recover
 the data.
 
-## XFS vs Ext4
-### XFS
-XFS was originally developed in the early 1990s by SGI. It is a 64-bit journaling file system that supports very 
-large files and file systems on a single host. For example, Red Hat’s maximum supported XFS file system image is 100TB 
-for RHEL 5, 300TB for RHEL 6, and 500TB for RHEL 7. 
-However, XFS has a relatively poor performance for single threaded, metadata-intensive workloads, for example, 
-a workload that creates or deletes large numbers of small files in a single thread.
-
-### Ext4
-Ext4 is the fourth generation of the Ext file system family. 
-A more compact and efficient way to track utilized space in a file system is the usage of extent-based metadata and
- the delayed allocation feature. File system repair time (fsck) in Ext4 is much faster than in Ext2 and Ext3 (up to a 
- six-fold increase) Red Hat’s maximum supported size for Ext4 is 16TB in both RHEL 5 and 6, and 50TB in RHEL 7.
-
-If both your server and your storage device are large, XFS is likely to be the best choice. 
-Even with smaller storage arrays, XFS performs very well when the average file sizes are large 
-(for example, hundreds of megabytes in size). Compared to Ext3, Ext4 has a faster file system check and repair times and
- higher streaming read and write performance on high-speed devices.  In general, Ext3 or Ext4 is better if 
- an application uses a single read/write thread and small files, 
- while XFS shines when an application uses multiple read/write threads and bigger files.
-
-More details: [Red Hat articles](https://access.redhat.com/articles/3129891)
-
 ## NFS server configuration 
     # install the packages
     yum -y install nfs-utils
@@ -341,3 +318,65 @@ Focus on Scalability, flexibility, and good usability
 the complete file system tree.
 * Storage Server. Save striped files
 * Clients
+
+
+
+## Linux Kernel Storage Stack
+### VFS, virtual file system, or virtual filesystem switch
+VFS is an abstract layer on top of a more concrete file system. The purpose of VFS is to allow client applications to 
+access different types of concrete file systems in a uniform way. A VFS specifies an interface between the kernel and 
+a concrete file system, so that it is easy to add support for new file system types.
+
+### XFS
+XFS was originally developed in the early 1990s by SGI. It is a 64-bit journaling file system that supports very 
+large files and file systems on a single host. For example, Red Hat’s maximum supported XFS file system image is 100TB 
+for RHEL 5, 300TB for RHEL 6, and 500TB for RHEL 7. 
+However, XFS has a relatively poor performance for single threaded, metadata-intensive workloads, for example, 
+a workload that creates or deletes large numbers of small files in a single thread.
+
+### Ext4
+Ext4 is the fourth generation of the Ext file system family. 
+A more compact and efficient way to track utilized space in a file system is the usage of extent-based metadata and
+ the delayed allocation feature. File system repair time (fsck) in Ext4 is much faster than in Ext2 and Ext3 (up to a 
+ six-fold increase) Red Hat’s maximum supported size for Ext4 is 16TB in both RHEL 5 and 6, and 50TB in RHEL 7.
+
+If both your server and your storage device are large, XFS is likely to be the best choice. 
+Even with smaller storage arrays, XFS performs very well when the average file sizes are large 
+(for example, hundreds of megabytes in size). Compared to Ext3, Ext4 has a faster file system check and repair times and
+ higher streaming read and write performance on high-speed devices.  In general, Ext3 or Ext4 is better if 
+ an application uses a single read/write thread and small files, 
+ while XFS shines when an application uses multiple read/write threads and bigger files.
+
+More details: [Red Hat articles](https://access.redhat.com/articles/3129891)
+
+### Block I/O
+Flexible block I/O structures (BIOs) consist of a list or a vector of segments that points to different pages in memory. This results in a dynamic 
+allocation of pages to the sectors on the block device via block I/O. BIOs come up again with respect to the block 
+layer. BIOs are grouped into requests before the kernel passes I/O operations to the driver's dispatch queue.
+
+### Stacked Block Devices
+As an important component of the Linux Storage Stack, it is located in front of the block layer, where logical block
+devices are implemented. The LVM and software RAID are the best representatives of stacked block devices. 
+
+### Block Layer
+The block layer processes the BIOs and is responsible for forwarding application I/O requests to the storage devices.
+It provides a uniform interface for data access includes both block devices such as SSD, Fibre Channel SAN, and memory
+devices. The block layer also ensures an equitable distribution of I/O access, appropriate error handling, 
+statistics, and a scheduling system.
+
+Three paths for the data to get in or around the block layer.
+* Traditional I/O Schedulers, such as NOOP, Deadline, or CFQ. 
+* Linux multiqueue block I/O queuing mechanism (blk-mq). For high-performance flash memory.
+* Diverting around the block layer directly to the BIO-based drivers.
+
+### SCSI Layer (Small Computer System Interface layer)
+SCSI is a set of standers for physical connecting and transfer data between computers and peripheral devices. SCSI layer
+is between the block layer and the respective hardware drivers. 
+
+* SCSI mid layer (SCSI upper-level drivers), scsi-mq, taking care of not only SCSI or SAS devices, but also SATA, RAID ,
+and FC HBAs.
+* SCSI low-lever drivers, the drivers that address the respective hardware components.
+
+
+More details: [Admin Magazine](http://www.admin-magazine.com/Archive/2016/31/Linux-Storage-Stack) 
+and [Thomas Krenn](https://www.thomas-krenn.com/de/wikiDE/images/e/e0/Linux-storage-stack-diagram_v4.10.png)
