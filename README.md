@@ -15,3 +15,18 @@ Configuration files to build a small HPC cluster based on virtual machines.
 * NFS Client Configuration
 * SAMBA Server & Client Configuration
 * Big Concepts in Network Storage
+
+
+# [Week 5: LDAP Directories and Accounts.](Week_5.md)
+* LDAP: Models, Schema, and Attributes
+* The LDAP Naming Model
+* LDIF
+* Configuring TLS Security
+* Slapadd/slapmodify
+* Searching the Directory
+* LDAP User Authentication.
+* Configure LDAP client to autogenerate user home directory
+* Add samba schema to the LDAP server
+* Master-Slave Configuration
+* Master-Master Configuration. Pros and cons for Master-Slave and Master-Master
+* Graphical LDAP Client Utilities-Apache directory studio 
