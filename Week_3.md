@@ -125,7 +125,7 @@ the data.
     # install the packages
     yum -y install nfs-utils
     # write the configuration file for NFS
-    vi /etc/exports # add the following line "/new_home	192.168.56.*(rw,sync,root_squash)"
+    vi /etc/exports # add the following line "/new_home	192.168.56.0/24(rw,sync,root_squash)" # wildcard doesnot work with IP addresses!
     chmod 777 /new_home
     # restart the services
     systemctl restart rpcbind  # RPC, Remote Procedure Call, required by NFS
@@ -136,6 +136,8 @@ the data.
     systemctl status nfs
     # check the export list
     showmount -e localhost
+    exportfs -v
+
     
     # firewall
     systemctl stop firewalld
