@@ -160,6 +160,11 @@ Execute ldapmodify to deploy the changes
 
     dapmodify -Y EXTERNAL -H ldapi:/// -f 02_allow_adminuser_access_LDAP.ldif 
 
+Configure LDAP Logging
+
+    echo "local4.* /var/log/ldap.log" >> /etc/rsyslog.conf
+    systemctl restart rsyslog    
+
 Check to see if the changes have been made
     
     ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=config olcDatabase=\*
@@ -432,8 +437,8 @@ Change passwd for the new user, user1
 
     ldappasswd -H ldap://ldapserver -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" -W -S "uid=user1,ou=Users,dc=biohpc,dc=swmed,dc=edu"
 
-       
-## Add the SAMBA LDAP Schema (on LDAP Server)
+## SAMBA with LDAP authentication       
+### Add the SAMBA LDAP Schema (on LDAP Server)
 Copy the example samba schema from Samba server to LDAP directory
 
     scp nfsserver:/usr/share/doc/samba-4.9.1/LDAP/samba.ldif /etc/openldap/schema/
@@ -452,17 +457,26 @@ Check to see if the samba.scheme is implemented
 
     slapcat -b 'cn=config' | grep ^dn | grep samba
 
-## Add LDAP support in SAMBA server (on SAMBA server)
+### Add LDAP support in SAMBA server (on SAMBA server)
+Install the package
+
+    yum -y install smbldap-tools
+
+
 In the [global] section of /etc/samba/smb.conf add the following lines
 
     #passdb backend = tdbsam
+    log file = /var/log/samba/smb.log
+    max log size = 10000
+    log level 5
+
     passdb backend = ldapsam:ldap://ldapserver/
     ldap suffix = dc=biohpc,dc=swmed,dc=edu
     ldap admin dn = cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu
     ldap ssl = start tls
     ldap passwd sync = yes
 
-    idmap config * : backend = tdb
+    #idmap config * : backend = tdb
 
 
 Add ldapadmin to the samba database 
@@ -472,5 +486,427 @@ Add ldapadmin to the samba database
 Restart the samba server
 
     systemctl restart smb
+
     
-TODO: Samba status looks fine, but smb client can't mount!
+Copy certificated file from server to client (if use TLS)
+    
+    scp ldapserver:/etc/openldap/certs/ca.cert.pem /etc/openldap/cacerts/
+    scp ldapserver:/etc/openldap/certs/biohpc.swmed.edu.cert /etc/openldap/certs/
+    scp ldapserver:/etc/openldap/certs/biohpc.swmed.edu.key /etc/openldap/certs/
+
+Get the unique SID (Security IDentifier) for Samba
+
+    net getlocalsid
+
+Config the smbldap-tools file, /etc/smbldap-tools/smbldap_bind.conf
+
+    cat /etc/smbldap-tools/smbldap_bind.conf
+
+    slaveDN="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+    slavePw="ldap123"
+    masterDN="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+    masterPw="ldap123"
+
+Config the smbldap-tools file, /etc/smbldap-tools/smbldap.conf
+
+    cat /etc/smbldap-tools/smbldap.conf
+    
+    # $Id$
+    #
+    # smbldap-tools.conf : Q & D configuration file for smbldap-tools
+    
+    #  This code was developped by IDEALX (http://IDEALX.org/) and
+    #  contributors (their names can be found in the CONTRIBUTORS file).
+    #
+    #                 Copyright (C) 2001-2002 IDEALX
+    #
+    #  This program is free software; you can redistribute it and/or
+    #  modify it under the terms of the GNU General Public License
+    #  as published by the Free Software Foundation; either version 2
+    #  of the License, or (at your option) any later version.
+    #
+    #  This program is distributed in the hope that it will be useful,
+    #  but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    #  GNU General Public License for more details.
+    #
+    #  You should have received a copy of the GNU General Public License
+    #  along with this program; if not, write to the Free Software
+    #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+    #  USA.
+    
+    #  Purpose :
+    #       . be the configuration file for all smbldap-tools scripts
+    
+    ##############################################################################
+    #
+    # General Configuration
+    #
+    ##############################################################################
+    
+    # Put your own SID. To obtain this number do: "net getlocalsid".
+    # If not defined, parameter is taking from "net getlocalsid" return
+    #SID="S-1-5-21-2252255531-4061614174-2474224977"
+    SID="S-1-5-21-1738781231-3054933728-64485614"
+    
+    # Domain name the Samba server is in charged.
+    # If not defined, parameter is taking from smb.conf configuration file
+    # Ex: sambaDomain="IDEALX-NT"
+    #sambaDomain="DOMSMB"
+    
+    ##############################################################################
+    #
+    # LDAP Configuration
+    #
+    ##############################################################################
+    
+    # Notes: to use to dual ldap servers backend for Samba, you must patch
+    # Samba with the dual-head patch from IDEALX. If not using this patch
+    # just use the same server for slaveLDAP and masterLDAP.
+    # Those two servers declarations can also be used when you have
+    # . one master LDAP server where all writing operations must be done
+    # . one slave LDAP server where all reading operations must be done
+    #   (typically a replication directory)
+    
+    # Slave LDAP server URI
+    # Ex: slaveLDAP=ldap://slave.ldap.example.com/
+    # If not defined, parameter is set to "ldap://127.0.0.1/"
+    #slaveLDAP="ldap://ldap.example.com/"
+    slaveLDAP="ldap://ldapserver/"
+    
+    # Master LDAP server URI: needed for write operations
+    # Ex: masterLDAP=ldap://master.ldap.example.com/
+    # If not defined, parameter is set to "ldap://127.0.0.1/"
+    #masterLDAP="ldap://ldap.example.com/"
+    masterLDAP="ldap://ldapserver/"
+    
+    # Use TLS for LDAP
+    # If set to 1, this option will use start_tls for connection
+    # (you must also used the LDAP URI "ldap://...", not "ldaps://...")
+    # If not defined, parameter is set to "0"
+    ldapTLS="1"
+    
+    # How to verify the server's certificate (none, optional or require)
+    # see "man Net::LDAP" in start_tls section for more details
+    verify="require"
+    
+    # CA certificate
+    # see "man Net::LDAP" in start_tls section for more details
+    #cafile="/etc/pki/tls/certs/ldapserverca.pem"
+    cafile="/etc/openldap/cacerts/ca.cert.pem"
+    
+    # certificate to use to connect to the ldap server
+    # see "man Net::LDAP" in start_tls section for more details
+    #clientcert="/etc/pki/tls/certs/ldapclient.pem"
+    clientcert="/etc/openldap/certs/biohpc.swmed.edu.cert"
+    
+    # key certificate to use to connect to the ldap server
+    # see "man Net::LDAP" in start_tls section for more details
+    #clientkey="/etc/pki/tls/certs/ldapclientkey.pem"
+    clientkey="/etc/openldap/certs/biohpc.swmed.edu.key"
+    
+    # LDAP Suffix
+    # Ex: suffix=dc=IDEALX,dc=ORG
+    #suffix="dc=example,dc=com"
+    suffix="dc=biohpc,dc=swmed,dc=edu"
+    
+    # Where are stored Users
+    # Ex: usersdn="ou=Users,dc=IDEALX,dc=ORG"
+    # Warning: if 'suffix' is not set here, you must set the full dn for usersdn
+    #usersdn="ou=People,${suffix}"
+    usersdn="ou=Users,${suffix}"
+    
+    # Where are stored Computers
+    # Ex: computersdn="ou=Computers,dc=IDEALX,dc=ORG"
+    # Warning: if 'suffix' is not set here, you must set the full dn for computersdn
+    computersdn="ou=Computers,${suffix}"
+    
+    # Where are stored Groups
+    # Ex: groupsdn="ou=Groups,dc=IDEALX,dc=ORG"
+    # Warning: if 'suffix' is not set here, you must set the full dn for groupsdn
+    groupsdn="ou=Group,${suffix}"
+    
+    # Where are stored Idmap entries (used if samba is a domain member server)
+    # Ex: idmapdn="ou=Idmap,dc=IDEALX,dc=ORG"
+    # Warning: if 'suffix' is not set here, you must set the full dn for idmapdn
+    idmapdn="ou=Idmap,${suffix}"
+    
+    # Where to store next uidNumber and gidNumber available for new users and groups
+    # If not defined, entries are stored in sambaDomainName object.
+    # Ex: sambaUnixIdPooldn="sambaDomainName=${sambaDomain},${suffix}"
+    # Ex: sambaUnixIdPooldn="cn=NextFreeUnixId,${suffix}"
+    sambaUnixIdPooldn="sambaDomainName=${sambaDomain},${suffix}"
+    
+    # Default scope Used
+    scope="sub"
+    
+    # Unix password hash scheme (CRYPT, MD5, SMD5, SSHA, SHA, CLEARTEXT)
+    # If set to "exop", use LDAPv3 Password Modify (RFC 3062) extended operation.
+    password_hash="SSHA"
+    
+    # if password_hash is set to CRYPT, you may set a salt format.
+    # default is "%s", but many systems will generate MD5 hashed
+    # passwords if you use "$1$%.8s". This parameter is optional!
+    password_crypt_salt_format="%s"
+    
+    ##############################################################################
+    # 
+    # Unix Accounts Configuration
+    # 
+    ##############################################################################
+    
+    # Login defs
+    # Default Login Shell
+    # Ex: userLoginShell="/bin/bash"
+    userLoginShell="/bin/bash"
+    
+    # Home directory
+    # Ex: userHome="/home/%U"
+    userHome="/home/%U"
+    
+    # Default mode used for user homeDirectory
+    userHomeDirectoryMode="700"
+    
+    # Gecos
+    userGecos="System User"
+    
+    # Default User (POSIX and Samba) GID
+    defaultUserGid="513"
+    
+    # Default Computer (Samba) GID
+    defaultComputerGid="515"
+    
+    # Skel dir
+    skeletonDir="/etc/skel"
+    
+    # Treat shadowAccount object or not
+    shadowAccount="1"
+    
+    # Default password validation time (time in days) Comment the next line if
+    # you don't want password to be enable for defaultMaxPasswordAge days (be
+    # careful to the sambaPwdMustChange attribute's value)
+    defaultMaxPasswordAge="45"
+    
+    ##############################################################################
+    #
+    # SAMBA Configuration
+    #
+    ##############################################################################
+    
+    # The UNC path to home drives location (%U username substitution)
+    # Just set it to a null string if you want to use the smb.conf 'logon home'
+    # directive and/or disable roaming profiles
+    # Ex: userSmbHome="\\PDC-SMB3\%U"
+    userSmbHome="\\PDC-SRV\%U"
+    
+    # The UNC path to profiles locations (%U username substitution)
+    # Just set it to a null string if you want to use the smb.conf 'logon path'
+    # directive and/or disable roaming profiles
+    # Ex: userProfile="\\PDC-SMB3\profiles\%U"
+    userProfile="\\PDC-SRV\profiles\%U"
+    
+    # The default Home Drive Letter mapping
+    # (will be automatically mapped at logon time if home directory exist)
+    # Ex: userHomeDrive="H:"
+    userHomeDrive="H:"
+    
+    # The default user netlogon script name (%U username substitution)
+    # if not used, will be automatically username.cmd
+    # make sure script file is edited under dos
+    # Ex: userScript="startup.cmd" # make sure script file is edited under dos
+    #userScript="logon.bat"
+    userScript=""
+    
+    # Domain appended to the users "mail"-attribute
+    # when smbldap-useradd -M is used
+    # Ex: mailDomain="idealx.com"
+    #mailDomain="example.com"
+    mailDomain="biohpc.swmed.edu"
+    
+    # Allows not to generate LANMAN password hash
+    lanmanPassword="0"
+    
+    ##############################################################################
+    #
+    # SMBLDAP-TOOLS Configuration (default are ok for a RedHat)
+    #
+    ##############################################################################
+    
+    # Allows not to use smbpasswd (if with_smbpasswd="0" in smbldap.conf) but
+    # prefer Crypt::SmbHash library
+    with_smbpasswd="0"
+    smbpasswd="/usr/bin/smbpasswd"
+    
+    # Allows not to use slappasswd (if with_slappasswd="0" in smbldap.conf)
+    # but prefer Crypt:: libraries
+    with_slappasswd="0"
+    slappasswd="/usr/sbin/slappasswd"
+    
+    # comment out the following line to get rid of the default banner
+    # no_banner="1"
+    no_banner="1"
+
+
+Test to see of you can get the userlist and/or grouplist
+
+    smbldap-userlist
+    
+    smbldap-grouplist
+    
+Create necessary entries in LDAP for SAMBA
+
+    smbldap-populate
+    
+Add a new user with smbldap tools
+
+    smbldap-useradd -a -P -m user2  #(type in passwd for user2, user2123)
+    
+    # test to get the passwd from LDAP server
+    getent passwd user2
+
+To remove a user
+
+    smbldap-userdel user2
+    
+To give the access permit for user2 to the shared folder new_home 
+
+    vi /etc/samba/smb.conf
+    
+    # in the [new_home] section add the Group or the user itself to the valid users list
+    valid users = emil @collaboration @"Domain Users"
+    
+Restart the smb server
+
+    systemctl restart nmb smb
+
+
+### Test SAMBA-LDAP configurations from the Linux client
+
+    smbclient -U user2 //192.168.56.103/user2
+    
+### Test SAMBA-LDAP configurations from the Windows client
+Change the name of Workgroup to SAMBA
+
+    Computer --(right click)--> Properties --> Computer name, domain, and workgroup settings 
+    --> Change settings --> Computer Name --> Change... --> Member of Workgroup (set to 'SAMBA')
+
+Browse to open the shared directories
+
+    Computer --> Network --> VAGRANT ( this is the hostname of the samba server) --> user2, user2123 (username and passwd)
+    
+    
+More details:  
+smb.conf [7th zero blog](https://7thzero.com/blog/configure-centos-7-samba-server-use-secure-ldap-authentication)  
+smbldap-tools [Linux/Network Admin's blog](https://admin.shamot.cz/?p=470), [Help Ubuntu](https://help.ubuntu.com/lts/serverguide/samba-ldap.html)
+
+
+## OpenLDAP Master-Slave configuration
+### Setup Master server
+Create a new user for pushing the changes
+
+    vi 08_rpuser.ldif
+
+    dn: uid=rpuser,ou=Users,dc=biohpc,dc=swmed,dc=edu
+    objectClass: simpleSecurityObject
+    objectclass: account
+    uid: rpuser
+    description: Replication  User
+    userPassword: rpuser123
+    
+Enable the syncprov module
+
+    vi 09_syncprov_mod.ldif
+    
+    dn: cn=module,cn=config
+    objectClass: olcModuleList
+    cn: module
+    olcModulePath: /usr/lib64/openldap
+    olcModuleLoad: syncprov.la
+    
+Enable syncprov for each directory 
+
+    vi 10_syncprov.ldif
+    
+    dn: olcOverlay=syncprov,olcDatabase={2}hdb,cn=config
+    objectClass: olcOverlayConfig
+    objectClass: olcSyncProvConfig
+    olcOverlay: syncprov
+    olcSpSessionLog: 100
+
+Deploy the changes
+
+    ldapadd -x -w ldap123 -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" -f 08_rpuser.ldif         
+    ldapadd -Y EXTERNAL -H ldapi:/// -f 09_syncprov_mod.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f 10_syncprov.ldif
+
+### Setup Slave server
+Configure the slave server
+
+    vi 08_rp.ldif
+    
+    
+    dn: olcDatabase={2}hdb,cn=config
+    changetype: modify
+    add: olcSyncRepl
+    olcSyncRepl: rid=001
+      provider=ldap://ldapserver/
+      bindmethod=simple
+      binddn="uid=rpuser,ou=Users,dc=biohpc,dc=swmed,dc=edu"
+      credentials=rpuser123
+      searchbase="dc=biohpc,dc=swmed,dc=edu"
+      scope=sub
+      schemachecking=on
+      type=refreshAndPersist
+      retry="30 5 300 3"
+      interval=00:00:05:00
+
+The meanings of the slave config fils
+* add: olcSyncRepl          # add a new slave
+* olcSyncRepl: rid=001      # the id of the slave, a three digit number
+* provider=                 # master server
+* binddn=                   # rpuser's dn
+* credentials=              # rpuser's passwd
+* searchbase=               # base of the DB
+
+Deploy the changes
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f 08_rp.ldif 
+
+Check the LDAP database
+
+    slapcat -b "dc=biohpc,dc=swmed,dc=edu"  | less 
+
+Configure the clients to bind with the slave server, too
+
+    authconfig --enableldap --enableldapauth --enablemkhomedir --ldapserver=ldapserver,ldapserver2 --ldapbasedn="dc=biohpc,dc=swmed,dc=edu" --enableldaptls --update
+
+
+
+More details: [Itzgeek.com](https://www.itzgeek.com/how-tos/linux/configure-openldap-master-slave-replication.html)
+
+
+
+
+
+TODO: Configure master-master mode.
+
+
+
+## Apache directory studio
+Install jdk
+
+    yum -y install java-11-openjdk java-11-openjdk-devel
+
+Install minimal gnome desktop
+
+    yum -y groupinstall "X Window System"
+    yum -y install gnome-classic-session gnome-terminal nautilus-open-terminal control-center liberation-mono-fonts
+
+Install and run ApacheDirectoryStudio
+    
+    scp ApacheDirectoryStudio-2.0.0.v20180908-M14-linux.gtk.x86_64.tar.gz root@192.168.56.104:/root/tools/src
+    tar zxf ApacheDirectoryStudio-2.0.0.v20180908-M14-linux.gtk.x86_64.tar.gz
+    cd ApacheDirectoryStudio
+    ./ApacheDirectoryStudio
+    
+Alternatively, you can run ApacheDirectoryStudio from local machine and connect to the LDAP server to manage it.
