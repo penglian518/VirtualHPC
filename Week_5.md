@@ -885,11 +885,186 @@ Configure the clients to bind with the slave server, too
 More details: [Itzgeek.com](https://www.itzgeek.com/how-tos/linux/configure-openldap-master-slave-replication.html)
 
 
+## OpenLDAP Master-Master configuration
+### on master1 (the master server in the previous section)
+Set server ID
+
+    vi 11_serverID.ldif
+    
+    
+    dn: cn=config
+    changetype: modify
+    replace: olcServerID
+    olcServerID: 1 ldap://ldapserver/
+    olcServerID: 2 ldap://ldapserver2/
+
+Set olcSyncRepl and turn on the mirror mode
+
+    vi 12_mirrorMode.ldif
+    
+    
+    dn: olcDatabase={2}hdb,cn=config
+    changetype: modify
+    replace: olcSyncRepl
+    olcSyncRepl: rid=001
+      provider=ldap://ldapserver/
+      bindmethod=simple
+      binddn="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+      credentials=ldap123
+      searchbase="dc=biohpc,dc=swmed,dc=edu"
+      scope=sub
+      schemachecking=on
+      type=refreshAndPersist
+      retry="30 5 300 3"
+      interval=00:00:05:00
+    olcSyncRepl: rid=002
+      provider=ldap://ldapserver2/
+      bindmethod=simple
+      binddn="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+      credentials=ldap123
+      searchbase="dc=biohpc,dc=swmed,dc=edu"
+      scope=sub
+      schemachecking=on
+      type=refreshAndPersist
+      retry="30 5 300 3"
+      interval=00:00:05:00
+    -
+    replace: olcMirrorMode
+    olcMirrorMode: TRUE
+    
+Deploy the changes
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f 11_serverID.ldif
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f 12_mirrorMode.ldif
+
+Config the slapd and add the full path for SLAPD_URLS
+
+    vi /etc/sysconfig/slapd
+    
+    #SLAPD_URLS="ldapi:/// ldap:/// ldaps:///"
+    SLAPD_URLS="ldapi:/// ldap://ldapserver/ ldaps:///"
+
+Restart the server and check the log file
+
+    systemctl restart slapd
+    
+    tail /var/log/ldap.log
 
 
+### on master2 (the slave server in the previous section)
+Enable the syncprov module
 
-TODO: Configure master-master mode.
+    vi 09_syncprov_mod.ldif
+    
+    dn: cn=module,cn=config
+    objectClass: olcModuleList
+    cn: module
+    olcModulePath: /usr/lib64/openldap
+    olcModuleLoad: syncprov.la
+    
+Enable syncprov for each directory 
 
+    vi 10_syncprov.ldif
+    
+    dn: olcOverlay=syncprov,olcDatabase={2}hdb,cn=config
+    objectClass: olcOverlayConfig
+    objectClass: olcSyncProvConfig
+    olcOverlay: syncprov
+    olcSpSessionLog: 100
+
+Deploy the changes
+
+    ldapadd -Y EXTERNAL -H ldapi:/// -f 09_syncprov_mod.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f 10_syncprov.ldif
+
+Set server ID
+
+    vi 11_serverID.ldif
+    
+    
+    dn: cn=config
+    changetype: modify
+    replace: olcServerID
+    olcServerID: 1 ldap://ldapserver/
+    olcServerID: 2 ldap://ldapserver2/
+
+Set olcSyncRepl and turn on the mirror mode
+
+    vi 12_mirrorMode.ldif
+    
+    
+    dn: olcDatabase={2}hdb,cn=config
+    changetype: modify
+    replace: olcSyncRepl
+    olcSyncRepl: rid=003
+      provider=ldap://ldapserver/
+      bindmethod=simple
+      binddn="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+      credentials=ldap123
+      searchbase="dc=biohpc,dc=swmed,dc=edu"
+      scope=sub
+      schemachecking=on
+      type=refreshAndPersist
+      retry="30 5 300 3"
+      interval=00:00:05:00
+    olcSyncRepl: rid=004
+      provider=ldap://ldapserver2/
+      bindmethod=simple
+      binddn="cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu"
+      credentials=ldap123
+      searchbase="dc=biohpc,dc=swmed,dc=edu"
+      scope=sub
+      schemachecking=on
+      type=refreshAndPersist
+      retry="30 5 300 3"
+      interval=00:00:05:00
+    -
+    replace: olcMirrorMode
+    olcMirrorMode: TRUE
+    
+Deploy the changes
+
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f 11_serverID.ldif
+    ldapmodify -Y EXTERNAL -H ldapi:/// -f 12_mirrorMode.ldif
+
+Config the slapd and add the full path for SLAPD_URLS
+
+    vi /etc/sysconfig/slapd
+    
+    #SLAPD_URLS="ldapi:/// ldap:/// ldaps:///"
+    SLAPD_URLS="ldapi:/// ldap://ldapserver2/ ldaps:///"
+
+Restart the server and check the log file
+
+    systemctl restart slapd
+    
+    tail /var/log/ldap.log
+
+
+### Test the master-master settings
+
+To test the settings, one can connect to one of the servers, make some changes to user1, and see if the changes have
+been pushed to the other server automatically.
+
+On one server, search the info of user1
+    
+    ldapsearch -x -w ldap123 -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" "cn=user1"
+
+One the other server, change the gid of user1 to different value
+
+    vi 14_test_change_user1.ldif
+    
+    dn: uid=user1,ou=Users,dc=biohpc,dc=swmed,dc=edu
+    changetype: modify
+    replace: gidNumber
+    gidNumber: 513
+
+    
+    # deloy the changes 
+    ldapmodify -x -w ldap123 -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" -f 14_test_change_user1.ldif 
+
+    # see the changes on this server
+    ldapsearch -x -w ldap123 -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" "cn=user1"
 
 
 ## Apache directory studio
