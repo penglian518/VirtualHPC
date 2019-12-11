@@ -13,7 +13,7 @@
 * Graphical LDAP Client Utilities-Apache directory studio 
 
 
-## LDAP: Models, Schema, and Attributes
+## 1. LDAP: Models, Schema, and Attributes
 LDAP is a lightweight client-server protocol for accessing and maintaining distributed directory services over an IP 
 network. A directory is similar to a database, but tends to contain more descriptive, attribute-based information. Read much
 more often than written. quick-response to high-volume lookup or search operations. Directory services play an important
@@ -88,7 +88,7 @@ An LDAP search takes the following information as input:
 
 More details: [Introduction to LDAP](https://web.archive.org/web/20050716050926/http://twistedmatrix.com/users/tv/ldap-intro/ldap-intro.html)
 
-## OpenLDAP Server configuration
+## 2. OpenLDAP Server configuration
 
 Install the packages  
     
@@ -166,7 +166,7 @@ Check to see if the changes have been made
     ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=config olcDatabase=\*
 
 
-## Setup LDAP database
+## 3. Setup LDAP database
 Copy the sample DB configuration file to /var/lib/ldap and update the permissions
 
     cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
@@ -236,7 +236,7 @@ More details: [goLinuxCloud](https://www.golinuxcloud.com/install-and-configure-
 [ITzGeek](https://www.itzgeek.com/how-tos/linux/centos-how-tos/step-step-openldap-server-configuration-centos-7-rhel-7.html)
     
 
-## Secure OpenLDAP with TLS
+## 4. Secure OpenLDAP with TLS
 Install packages
 
     yum -y install openssl
@@ -334,7 +334,7 @@ More details: [goLinuxCloud](https://www.golinuxcloud.com/configure-openldap-wit
 
 
 
-## Create a new user with LDAP
+## 5. Create a new user with LDAP
 Design the features of the user
 
     vi 05_add_an_user.ldif
@@ -373,7 +373,7 @@ Check to see if the changes have been made
 Go to the client to test if you can use user1
 
 
-## Configure LDAP client
+## 6. Configure LDAP client
 Install pakcages
 
     yum -y install openldap-clients pam_ldap nss-pam-ldapd authconfig
@@ -433,7 +433,7 @@ Change passwd for the new user, user1
 
     ldappasswd -H ldap://ldapserver -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" -W -S "uid=user1,ou=Users,dc=biohpc,dc=swmed,dc=edu"
 
-## SAMBA with LDAP authentication       
+## 7. SAMBA with LDAP authentication       
 ### Add the SAMBA LDAP Schema (on LDAP Server)
 Copy the example samba schema from Samba server to LDAP directory
 
@@ -796,7 +796,7 @@ smb.conf [7th zero blog](https://7thzero.com/blog/configure-centos-7-samba-serve
 smbldap-tools [Linux/Network Admin's blog](https://admin.shamot.cz/?p=470), [Help Ubuntu](https://help.ubuntu.com/lts/serverguide/samba-ldap.html)
 
 
-## OpenLDAP Master-Slave configuration
+## 8. OpenLDAP Master-Slave configuration
 ### Setup Master server
 Create a new user for pushing the changes
 
@@ -881,7 +881,7 @@ Configure the clients to bind with the slave server, too
 More details: [Itzgeek.com](https://www.itzgeek.com/how-tos/linux/configure-openldap-master-slave-replication.html)
 
 
-## OpenLDAP Master-Master configuration
+## 9. OpenLDAP Master-Master configuration
 ### on master1 (the master server in the previous section)
 Set server ID
 
@@ -1063,7 +1063,7 @@ One the other server, change the gid of user1 to different value
     ldapsearch -x -w ldap123 -D "cn=ldapadmin,dc=biohpc,dc=swmed,dc=edu" "cn=user1"
 
 
-## Apache directory studio
+## 10. Apache directory studio
 Install jdk
 
     yum -y install java-11-openjdk java-11-openjdk-devel
