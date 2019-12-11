@@ -106,6 +106,7 @@ Set the password
     slappasswd -s ldap123   # set the password to 'ldap123'. write down the output hash. {SSHA}RqpTJBI83gZTAjmAqBUyTpZcrbuDo2Hw
     
 Configure the server  
+
 We have to update some variables in the configuration file, /etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif
 * olcSuffix -- Database Suffix. It's the domain name
 * olcRootDN -- Root Distinguished Name for the administration user
