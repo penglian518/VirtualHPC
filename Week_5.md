@@ -48,24 +48,20 @@ Setup an user on ldap with following DN: “dn: uid=s170229,ou=Bioinformatics,ou
 
 * Attributetype: Commonly contains a global identifier (a list of period-sperated intergers), a list of names, 
 a free-form description, and a reference to another attribute type this definition inherits from. May also have 
-some other informations.
+some other informations. The following is an example of attributeType definition.  
 
-
-    # An example of attributeType definition
-    attributetype ( 2.5.4.4 NAME ( 'sn' 'surname' )
-        DESC 'RFC2256: last (family) name(s) for which the entity is known by'
-        SUP name )
+        attributetype ( 2.5.4.4 NAME ( 'sn' 'surname' )
+            DESC 'RFC2256: last (family) name(s) for which the entity is known by'
+            SUP name )
 
 * Objectclass: A special attributeType, which lists all the objectcalsses the LDAP entry manifests. An object class
-lists what attribute types an entry must have, and what optional attribute types it may have. 
-
+lists what attribute types an entry must have, and what optional attribute types it may have. The following is an example of objectClass definition
     
-    # An example of objectClass definition
-    objectclass ( 2.5.6.6 NAME 'person'
-        DESC 'RFC2256: a person'
-        SUP top STRUCTURAL
-        MUST ( sn $ cn )
-        MAY ( userPassword $ telephoneNumber $ seeAlso $ description ) )
+        objectclass ( 2.5.6.6 NAME 'person'
+            DESC 'RFC2256: a person'
+            SUP top STRUCTURAL
+            MUST ( sn $ cn )
+            MAY ( userPassword $ telephoneNumber $ seeAlso $ description ) )
 
 * Schemas: A part of the configuration of the server, containing two things: definitions of attribute types and 
 definition of objectclasses.
