@@ -30,3 +30,11 @@ Configuration files to build a small HPC cluster based on virtual machines.
 * Master-Slave Configuration
 * Master-Master Configuration. Pros and cons for Master-Slave and Master-Master
 * Graphical LDAP Client Utilities-Apache directory studio 
+
+
+# [Week 7: OpenHPC and Slurm](Week_7.md)
+* Basic terms
+* Setup OpenHPC server
+* Deploy Slurm
+* Combine with LDAP server
+* Mount NFS filesystem
