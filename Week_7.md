@@ -68,8 +68,14 @@ Install slurm server
     yum -y install ohpc-slurm-server
     
     # set the nfsserver as the slurm-server 
-    perl -pi -e "s/ControlMachine=\S+/ControlMachine=nfsserver/" /etc/slurm/slurm.conf
+    perl -pi -e "s/ControlMachine=\S+/#ControlMachine=nfsserver/" /etc/slurm/slurm.conf
     
+    # add the following line to the slurm.conf
+    vi /etc/slurm/slurm.conf
+        SlurmctldHost=vagrant(192.168.56.103)
+        #NodeName=c[1-4] Sockets=2 CoresPerSocket=8 ThreadsPerCore=2 State=UNKNOWN
+        NodeName=c[1-4] Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
+
 Complete basic Warewulf setup for mater node
 
     # config Warewulf provisioning to use the right internal interface
@@ -225,4 +231,106 @@ Register nodes for provisioning
     # wwsh made a lot of changes to dhcpd.conf, so restart DHCPD
     systemctl restart dhcpd
     wwsh pxe update
+
+Boot the client nodes c1 and c2
+
+1. <strong>Install the extend pack of VirtualBox</strong>
+2. Create new machines named c1 and c2
+3. Set c1 and c2 to use the host-only network and assign MAC addresses with 08:00:27:48:B8:B5 and 08:00:27:C1:AE:34
+4. Change the boot order to Network
+5. (Optional) Remove the hard drive of c1 and c2
+
+## Start Slurm
+On the server run the following commands
+
+    # start the slurm
+    systemctl start munge
+    systemctl start slurmctld
+    systemctl enable munge
+    systemctl enable slurmctld
     
+    # start slurm clients on the compute hosts, c1 and c2
+    pdsh -w c[1-2] systemctl start slurmd
+    pdsh -w c[1-2] systemctl enable slurmd
+    
+    # check the status
+    sinfo
+    less /var/log/slurmctld.log
+        
+    # If the State of the nodes is not IDLE, run the following settings
+    scontrol: update NodeName=c1 State=DOWN Reason="undraining"
+    scontrol: update NodeName=c1 State=RESUME
+    scontrol: show node c1
+    
+In case there there are some errors in the /etc/slurm/slurm.conf of the computing nodes, modifying the slurm.conf 
+on the SERVER, and then running the following commands
+
+    wwsh file import /etc/slurm/slurm.conf
+    systemctl restart dhcpd
+    wwsh pxe update
+    
+Then, restart the computing nodes
+
+## Test the configurations
+Install OpenMPI
+
+    curl https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.2.tar.gz > openmpi-4.0.2.tar.gz
+    tar zxf openmpi-4.0.2.tar.gz
+    ./configure --prefix=/home/tools/openmpi-4.0.2
+    make
+    make install
+    
+    vi /etc/profile
+        export PATH=$PATH:/home/tools/openmpi-4.0.2/bin
+
+    wwsh file import /etc/profile
+
+
+Switch to 'user2'
+
+    su - user2
+
+Compile MPI example
+
+    mpicc -O3 /opt/ohpc/pub/examples/mpi/hello.c
+    
+    # this command perduce a file "a.out"
+    
+Submit an interactive job
+
+    srun -n 2 -N 2 --pty /bin/bash
+    
+Run the executable
+
+    [henry@c1 ~]$ /home/tools/openmpi-4.0.2/bin/mpirun ./a.out 
+    
+     Hello, world (2 procs total)
+        --> Process #   0 of   2 is alive. -> c1
+        --> Process #   1 of   2 is alive. -> c2
+
+Batch execution
+
+    cp /opt/ohpc/pub/examples/slurm/job.mpi .
+    
+    vi job.mpi
+    cat job.mpi
+    
+        #!/bin/bash
+        
+        #SBATCH -J test               # Job name
+        #SBATCH -o job.%j.out         # Name of stdout output file (%j expands to jobId)
+        #SBATCH -N 2                  # Total number of nodes requested
+        #SBATCH -n 2                 # Total number of mpi tasks requested
+        #SBATCH -t 01:30:00           # Run time (hh:mm:ss) - 1.5 hours
+        
+        # Launch MPI-based executable
+        
+        /home/tools/openmpi-4.0.2/bin/mpirun ./a.out
+
+    sbatch job.mpi
+    
+    [henry@vagrant ~]$ cat job.10.out 
+    
+    Hello, world (2 procs total)
+       --> Process #   0 of   2 is alive. -> c1
+       --> Process #   1 of   2 is alive. -> c2
