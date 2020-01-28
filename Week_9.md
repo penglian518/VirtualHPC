@@ -41,5 +41,5 @@ Submit mpi4py jobs
 
 Results
 
-    ![Scalability of mpi4py](blowfish_py/plot.png)
+![Scalability of mpi4py](blowfish_py/plot.png)
     
