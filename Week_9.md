@@ -24,9 +24,9 @@ Implementation
 [blowfish.py](blowfish_py/blowfish.py)  
 [blowfish_single_core.py](blowfish_py/blowfish_single_core.py)  
 [blowfish_mpi.py](blowfish_py/blowfish_mpi.py)  
+[plot.py](blowfish_py/plot.py)
 
-
-Submit mpi4py jobs
+Submit mpi4py jobs (A sample SLURM script)
 
     #!/bin/bash
     #SBATCH --job-name=MPI
