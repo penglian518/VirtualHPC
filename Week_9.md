@@ -48,7 +48,7 @@ Submit mpi4py jobs (A sample SLURM script)
 
 Results  
 
-The benchmark was tested by encrypt and decrypt 10 copy of [KJV Bible](blowfish_py/kjv-bible.txt), which has 1,002,310 lines.  
+The benchmark was tested by encrypt and decrypt 10 copies of [KJV Bible](blowfish_py/kjv-bible.txt), which has 1,002,310 lines.  
 
 ![Scalability of mpi4py](blowfish_py/plot.png)
     
