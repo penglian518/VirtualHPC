@@ -38,3 +38,7 @@ Configuration files to build a small HPC cluster based on virtual machines.
 * Deploy Slurm
 * Combine with LDAP server
 * Mount NFS filesystem
+
+# [Week 9: OpenMPI Programming and Benchmarking](Week_9.md)
+* Blowfish (cipher)
+* Mpi4py

@@ -1,0 +1,11 @@
+SLURM_NTASKS: 14
+Failed to cleanup the files
+Starts to encrypt ...
+Total lines:  1002310
+The encryption time is: 1032.79
+Starts to decrypt ...
+Total lines:  1002310
+The decryption time is: 1030.17
+
+Good Job. bible.txt and test_decrypted.txt have no differences.
+

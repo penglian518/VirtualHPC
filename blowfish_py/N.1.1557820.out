@@ -1,0 +1,11 @@
+SLURM_NTASKS: 1
+The key used for encryption and decryption is: 1234 abcd 4321 dcba
+Starts to encrypt ...
+Total lines:  100231
+The encryption time is: 1259.25
+Starts to decrypt ...
+Total lines:  100231
+The decryption time is: 1258.58
+
+Good Job. kjv-bible.txt and test_decrypted.txt have no differences.
+

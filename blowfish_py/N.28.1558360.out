@@ -1,0 +1,10 @@
+SLURM_NTASKS: 28
+Starts to encrypt ...
+Total lines:  1002310
+The encryption time is: 537.55
+Starts to decrypt ...
+Total lines:  1002310
+The decryption time is: 542.83
+
+Good Job. bible.txt and test_decrypted.txt have no differences.
+
