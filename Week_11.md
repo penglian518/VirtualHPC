@@ -265,7 +265,6 @@ Target section
     service iptables save
     
 ### TCP Wrappers
-
 * /etc/hosts.allow  # is checked first
 * /etc/hosts.deny  
 
@@ -288,7 +287,8 @@ Target section
     
     sshd : 10.0.0.1: severity emerg             # gene emergence message if 10.0.0.1 ssh
     sshd : 10.0.0.1: severity local0.alert
-    sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a"     #
+    sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a" 
+
 
 ### Exercise
 
@@ -464,6 +464,7 @@ Bypass the secure the boot loader
 ### Disk encryption
 * dm-crypt
 * LUKS (a front-end for dm-crypt)
+
 
 
     # install cryptsetup
