@@ -42,3 +42,12 @@ Configuration files to build a small HPC cluster based on virtual machines.
 # [Week 9: OpenMPI Programming and Benchmarking](Week_9.md)
 * Blowfish (cipher)
 * Mpi4py
+
+# [Week 11: Security in HPC](Week_11.md)
+* Why is Security important in Academic HPC
+* UTSW Information Security Policies
+* Account Security
+* Network Security
+* Filesystem Security
+* Software Security
+
