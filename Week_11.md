@@ -268,26 +268,25 @@ Target section
 * /etc/hosts.allow  # is checked first
 * /etc/hosts.deny  
 
+      # Format:  
+      # SERVICE(S) : CLIENT(S) [: ACTION(S)]
+      # services/clients seperated by ','
+      # clients can be hostnames, wildcard supported
 
-    # Format:  
-    # SERVICE(S) : CLIENT(S) [: ACTION(S)]
-    # services/clients seperated by ','
-    # clients can be hostnames, wildcard supported
-    
-    sshd : 10.0.0.0
-    sshd : 10.0.0.0/255.255.0.0
-    sshd : 10.                      # ip starts with 10
-    sshd : /etc/hosts.allow         # hosts in file
-    sshd : ALL EXCEPT .hackers.net  # all except
-    
-    sshd, imapd : 10.0.0.1
-    ALL : 10.0.0.1
-    sshd : .examples.com
-    sshd : jumpbox*.examples.com
-    
-    sshd : 10.0.0.1: severity emerg             # gene emergence message if 10.0.0.1 ssh
-    sshd : 10.0.0.1: severity local0.alert
-    sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a" 
+      sshd : 10.0.0.0
+      sshd : 10.0.0.0/255.255.0.0
+      sshd : 10.                      # ip starts with 10
+      sshd : /etc/hosts.allow         # hosts in file
+      sshd : ALL EXCEPT .hackers.net  # all except
+
+      sshd, imapd : 10.0.0.1
+      ALL : 10.0.0.1
+      sshd : .examples.com
+      sshd : jumpbox*.examples.com
+
+      sshd : 10.0.0.1: severity emerg             # gene emergence message if 10.0.0.1 ssh
+      sshd : 10.0.0.1: severity local0.alert
+      sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a" 
 
 
 ### Exercise
@@ -465,39 +464,37 @@ Bypass the secure the boot loader
 * dm-crypt
 * LUKS (a front-end for dm-crypt)
 
+      # install cryptsetup
+      yum install cryptsetup
 
+      fdisk -l
 
-    # install cryptsetup
-    yum install cryptsetup
-    
-    fdisk -l
-    
-    # write random data to /dev/sdb
-    shred -v -n 1 /dev/sdb
-    
-    # setup passphrase
-    cryptsetup luksFormat /dev/sdb
-    
-    # create a virtual mapper for /dev/sdb
-    cryptsetup luksOpen /dev/sdb opt
-    ls -l /dev/mapper/opt
-    
-    # format to ext4
-    mkfs -t ext4 /dev/mapper/opt
-    
-    # find the uuid 
-    blkid
-    
-    # ask for password in every boot/mount
-    vi /etc/cryptab
-    #name   disk      passwd  format
-    opt    /dev/sdb   none   luks
-    opt    UUID="xxxxxxx"   none   luks
-    
-    # umount
-    umount /opt
-    # remove the mapper
-    cryptsetup luksClose opt
+      # write random data to /dev/sdb
+      shred -v -n 1 /dev/sdb
+
+      # setup passphrase
+      cryptsetup luksFormat /dev/sdb
+
+      # create a virtual mapper for /dev/sdb
+      cryptsetup luksOpen /dev/sdb opt
+      ls -l /dev/mapper/opt
+
+      # format to ext4
+      mkfs -t ext4 /dev/mapper/opt
+
+      # find the uuid 
+      blkid
+
+      # ask for password in every boot/mount
+      vi /etc/cryptab
+      #name   disk      passwd  format
+      opt    /dev/sdb   none   luks
+      opt    UUID="xxxxxxx"   none   luks
+
+      # umount
+      umount /opt
+      # remove the mapper
+      cryptsetup luksClose opt
     
 Encrypt a file and use it as disk
 
