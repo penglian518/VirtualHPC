@@ -268,43 +268,42 @@ Target section
 * /etc/hosts.allow  # is checked first
 * /etc/hosts.deny  
 
-      # Format:  
-      # SERVICE(S) : CLIENT(S) [: ACTION(S)]
-      # services/clients seperated by ','
-      # clients can be hostnames, wildcard supported
-
-      sshd : 10.0.0.0
-      sshd : 10.0.0.0/255.255.0.0
-      sshd : 10.                      # ip starts with 10
-      sshd : /etc/hosts.allow         # hosts in file
-      sshd : ALL EXCEPT .hackers.net  # all except
-
-      sshd, imapd : 10.0.0.1
-      ALL : 10.0.0.1
-      sshd : .examples.com
-      sshd : jumpbox*.examples.com
-
-      sshd : 10.0.0.1: severity emerg             # gene emergence message if 10.0.0.1 ssh
-      sshd : 10.0.0.1: severity local0.alert
-      sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a" 
-
+        # Format:  
+        # SERVICE(S) : CLIENT(S) [: ACTION(S)]
+        # services/clients seperated by ','
+        # clients can be hostnames, wildcard supported
+        
+        sshd : 10.0.0.0
+        sshd : 10.0.0.0/255.255.0.0
+        sshd : 10.                      # ip starts with 10
+        sshd : /etc/hosts.allow         # hosts in file
+        sshd : ALL EXCEPT .hackers.net  # all except
+        
+        sshd, imapd : 10.0.0.1
+        ALL : 10.0.0.1
+        sshd : .examples.com
+        sshd : jumpbox*.examples.com
+        
+        sshd : 10.0.0.1: severity emerg             # gene emergence message if 10.0.0.1 ssh
+        sshd : 10.0.0.1: severity local0.alert
+        sshd : 10.0.0.1: spawn /usr/bin/wall "attacking from %a" 
 
 ### Exercise
 
-    # allow 10.0.0.0 to visit 22 via SSH
-    iptabels -A INPUT -p tcp -s 10.0.0.0/24 --dport 22 -j ACCEPT 
-    # drop all the other visits on 22
-    iptabels -A INPUT -p tcp --dport 22 -j DROP
-    # save the rules
-    service iptables save
-    
-    # block 192.168.0.29 from visiting port 22 and 80
-    iptables -A INPUT -s 192.168.0.29 --dport 22 -j DROP
-    iptables -A INPUT -s 192.168.0.29 --dport 80 -j DROP
-    # check the tables
-    iptables -nL
-    # save the rules
-    service iptables save
+        # allow 10.0.0.0 to visit 22 via SSH
+        iptabels -A INPUT -p tcp -s 10.0.0.0/24 --dport 22 -j ACCEPT 
+        # drop all the other visits on 22
+        iptabels -A INPUT -p tcp --dport 22 -j DROP
+        # save the rules
+        service iptables save
+        
+        # block 192.168.0.29 from visiting port 22 and 80
+        iptables -A INPUT -s 192.168.0.29 --dport 22 -j DROP
+        iptables -A INPUT -s 192.168.0.29 --dport 80 -j DROP
+        # check the tables
+        iptables -nL
+        # save the rules
+        service iptables save
     
 ## Filesystem Security
 
@@ -314,25 +313,24 @@ Target section
 * Sticky Bit, only allow the owner of the file/directory to delelet it. e.g. /tmp
 
 
-    # Find all setuid files
-    find / -perm /4000 -ls
-    find / -perm +4000 -ls      # old version of find
-
-    # Find all setgid files
-    find / -perm /2000 -ls
-    find / -perm +2000 -ls      # old version of find
+        # Find all setuid files
+        find / -perm /4000 -ls
+        find / -perm +4000 -ls      # old version of find
+        
+        # Find all setgid files
+        find / -perm /2000 -ls
+        find / -perm +2000 -ls      # old version of find
 
 ### xatt for files, extended attrubits
 * i, immutable, file cannot be removed or modified or linked. The root users has to remove i first
 * a, append only, file cannot be removed or modified. The root has to remove a first.
 
-
-    # list all attr
-    lsattr /etc/motd
-    lsattr /var/log/messages
-    
-    # setting attr
-    chattr +/-/= i/a
+        # list all attr
+        lsattr /etc/motd
+        lsattr /var/log/messages
+        
+        # setting attr
+        chattr +/-/= i/a
 
 ### ACLs
     
@@ -404,129 +402,130 @@ maintain access controls
 allow access by need  
 
 ### Single user mode    
-    GRUB boot loader
 
-    press 'e'
-    find the line starts with 'linux'
-    append 's' or '1' or 'resuce'
-    boot ctrl+x or 'b'
+        GRUB boot loader
+    
+        press 'e'
+        find the line starts with 'linux'
+        append 's' or '1' or 'resuce'
+        boot ctrl+x or 'b'
     
 Set require root passwd in single user mode
 
-    # old linux
-    vi /ect/config/init
-        change the following line to sulogin
-        SINGLE=/sbin/sushell
+        # old linux
+        vi /ect/config/init
+            change the following line to sulogin
+            SINGLE=/sbin/sushell
+            
+            SINGLE=/sbin/sulogin
         
-        SINGLE=/sbin/sulogin
-    
-    # systemd linux
-    cd /lib/systemd/system
-    vi emergency.service     vi rescue.service
-    
-    ExecStart=.... change "sushell" to "sulogin"
+        # systemd linux
+        cd /lib/systemd/system
+        vi emergency.service     vi rescue.service
+        
+        ExecStart=.... change "sushell" to "sulogin"
     
 Bypass the passwd for single user mode
     
-    GRUB boot loader
-
-    find the line starts with 'linux'
-    append "init=/bin/bash"
+        GRUB boot loader
+    
+        find the line starts with 'linux'
+        append "init=/bin/bash"
     
 Secure the boot loader (grub will ask for both username and password)
 
-    cd /etc/grub.d
-    vi 40_custom
-        set superusers="root"
-        password root root_pass_word
-    
-    #encrypt the root_pass_word
-    # gene passwd hash
-    grub2-mkpasswd-pbkdf2 
-    
-    password_pbkdf2 root the_hash
-    
-    # update the configuration
-    # for centOS
-    grub2-mkconfig -o /boot/grub2/grub.cfg
-    # for ubuntu
-    update_grub 
-    
+        cd /etc/grub.d
+        vi 40_custom
+            set superusers="root"
+            password root root_pass_word
+        
+        #encrypt the root_pass_word
+        # gene passwd hash
+        grub2-mkpasswd-pbkdf2 
+        
+        password_pbkdf2 root the_hash
+        
+        # update the configuration
+        # for centOS
+        grub2-mkconfig -o /boot/grub2/grub.cfg
+        # for ubuntu
+        update_grub 
+        
 Bypass the secure the boot loader 
 
-    Use a CD/USB to boot to a Rescue mode
-    
-    mount the disk and vi /boot/grub2/grub.cfg and comment out the following lines
-    # set superusers="root"
-    # password root root_pass_word
+        Use a CD/USB to boot to a Rescue mode
+        
+        mount the disk and vi /boot/grub2/grub.cfg and comment out the following lines
+        # set superusers="root"
+        # password root root_pass_word
     
 ### Disk encryption
 * dm-crypt
 * LUKS (a front-end for dm-crypt)
 
-      # install cryptsetup
-      yum install cryptsetup
-
-      fdisk -l
-
-      # write random data to /dev/sdb
-      shred -v -n 1 /dev/sdb
-
-      # setup passphrase
-      cryptsetup luksFormat /dev/sdb
-
-      # create a virtual mapper for /dev/sdb
-      cryptsetup luksOpen /dev/sdb opt
-      ls -l /dev/mapper/opt
-
-      # format to ext4
-      mkfs -t ext4 /dev/mapper/opt
-
-      # find the uuid 
-      blkid
-
-      # ask for password in every boot/mount
-      vi /etc/cryptab
-      #name   disk      passwd  format
-      opt    /dev/sdb   none   luks
-      opt    UUID="xxxxxxx"   none   luks
-
-      # umount
-      umount /opt
-      # remove the mapper
-      cryptsetup luksClose opt
+          # install cryptsetup
+          yum install cryptsetup
+    
+          fdisk -l
+    
+          # write random data to /dev/sdb
+          shred -v -n 1 /dev/sdb
+    
+          # setup passphrase
+          cryptsetup luksFormat /dev/sdb
+    
+          # create a virtual mapper for /dev/sdb
+          cryptsetup luksOpen /dev/sdb opt
+          ls -l /dev/mapper/opt
+    
+          # format to ext4
+          mkfs -t ext4 /dev/mapper/opt
+    
+          # find the uuid 
+          blkid
+    
+          # ask for password in every boot/mount
+          vi /etc/cryptab
+          #name   disk      passwd  format
+          opt    /dev/sdb   none   luks
+          opt    UUID="xxxxxxx"   none   luks
+    
+          # umount
+          umount /opt
+          # remove the mapper
+          cryptsetup luksClose opt
     
 Encrypt a file and use it as disk
 
-    mkdir data
-    # allocate a file
-    fallocate -l 100M /data/opt
-    
-    # get the strings to check 
-    strings /data/opt
-    
-    # optional. write random strings to the file
-    dd if=/dev/urandom of=/data/opt bs=1M count=100
-    
-    # format with luks
-    cryptsetup luksFormat /data/opt
-    
-    # crate a mapper
-    cryptsetup luksOpen /data/opt opt
-    
-    # format as ext4
-    mkfs -t ext4 /dev/mapper/opt
-    
-    # mount
-    mount /dev/mapper/opt /opt
+        mkdir data
+        # allocate a file
+        fallocate -l 100M /data/opt
+        
+        # get the strings to check 
+        strings /data/opt
+        
+        # optional. write random strings to the file
+        dd if=/dev/urandom of=/data/opt bs=1M count=100
+        
+        # format with luks
+        cryptsetup luksFormat /data/opt
+        
+        # crate a mapper
+        cryptsetup luksOpen /data/opt opt
+        
+        # format as ext4
+        mkfs -t ext4 /dev/mapper/opt
+        
+        # mount
+        mount /dev/mapper/opt /opt
     
 
 Disable virtual reboot "Ctrl+Alt+Delete"
 
-    # disable 
-    systemctl mask ctrl-alt-del.target
-    # take effect
-    systemctl daemon-reload
+        # disable 
+        systemctl mask ctrl-alt-del.target
+        # take effect
+        systemctl daemon-reload
     
 ## Software Security
 
