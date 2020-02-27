@@ -555,3 +555,74 @@ Program flow
 * data flow
 
 
+
+
+## GnuPG
+
+Install package
+
+    apt-get install gnupg
+    
+Gen key
+
+    gpg --full-gen-key              # step-by-step
+
+    gpg --gen-key                   # use default settings, expired in 2 years
+    
+List the key pairs
+
+    gpg --list-keys
+    
+Export public keys
+
+    gpg --armor --export --output xxx_pubkey.gpg KEY_ID
+    
+Submit keys to a key-server
+
+    gpg --send-keys --keyserver keyserver.ubuntu.com KEY_ID
+    
+Import keys
+
+    gpg --import-keys xxx_pubkey.gpg
+    
+Search keys
+
+    gpg --search-keys --keyserver keyserver.ubuntu.com KEY_ID/E-Mail/NAME
+    
+Encrypt a secret file using your friend's public key
+
+    gpg --encrypt [--armor] --recipient XXXX a.txt
+    
+Decrypt a file
+
+    gpg --decrypt a.txt.gpg > secret.txt
+    
+Send an encrypted file to multiple recipient
+
+    gpg -r xxx1 -r xxx2 -r xxx3 --encrypt a.txt
+
+Sign a file
+
+    gpg --sign file.txt                             # will generate a signed file file.txt.gpg
+    gpg --clearsign file.txt --output file.sig      # sign in ASCII format 
+    
+Verify a signature
+
+    gpg --verify file.txt.gpg
+    
+Extract the doc from the signed file
+
+    gpg --output doc.txt --decrypt file.txt.gpg
+    
+Detached sign
+
+    gpg --armor --detach-sig file.txt               # signature will be in file.txt.asc
+    
+Verity a detached signature
+
+    gpg --verify file.txt.asc file.txt
+    
+Encrypt and Sign a file
+
+    gpg --sign --encrypt --recipient XXX file.txt
+
