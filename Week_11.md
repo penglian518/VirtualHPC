@@ -321,7 +321,7 @@ Target section
         find / -perm /2000 -ls
         find / -perm +2000 -ls      # old version of find
 
-### xatt for files, extended attrubits
+### xatt for files, extended attrubits [ref](https://linoxide.com/how-tos/howto-show-file-attributes-in-linux/)
 * i, immutable, file cannot be removed or modified or linked. The root users has to remove i first
 * a, append only, file cannot be removed or modified. The root has to remove a first.
 
@@ -330,7 +330,8 @@ Target section
         lsattr /var/log/messages
         
         # setting attr
-        chattr +/-/= i/a
+        chattr +/-/=i/a
+        
 
 ### ACLs
     
