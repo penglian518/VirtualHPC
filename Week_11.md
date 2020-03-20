@@ -577,6 +577,8 @@ List the key pairs
 Export public keys
 
     gpg --armor --export --output xxx_pubkey.gpg KEY_ID
+    # or
+    gpg -a --export KEY_ID > xxx_pubkey.gpg
     
 Submit keys to a key-server
 
@@ -626,4 +628,14 @@ Verity a detached signature
 Encrypt and Sign a file
 
     gpg --sign --encrypt --recipient XXX file.txt
+    
+Backup the private keys  
 
+    gpg -a --export-secret-keys KEY_ID > xxx-secret-gpg.key
+    gpg --export-ownertrust > xxx-ownertrust-gpg.txt
+    
+Restore the private keys
+
+    gpg --import-ownertrust xxx-ownertrust-gpg.txt
+    gpg --import xxx-secret-gpg.key
+    
