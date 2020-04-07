@@ -639,3 +639,44 @@ Restore the private keys
     gpg --import-ownertrust xxx-ownertrust-gpg.txt
     gpg --import xxx-secret-gpg.key
     
+## VNC server
+
+Install  
+
+    yum install tigervnc-server
+    cp /usr/lib/systemd/system/vncserver@.service /etc/systemd/system/vncserver@.service
+
+Config  
+ 
+    vim /etc/systemd/system/vncserver@.service
+    
+    # add the following lines
+    ExecStart=/usr/sbin/runuser -l <USER> -c "/usr/bin/vncserver %i -geometry 1280x1024"
+    PIDFile=/home2/<USER>/.vnc/%H%i.pid
+
+Reload & start the service  
+
+    systemctl daemon-reload
+    # :5 is the display number ---> port 5095/tcp 
+    systemctl start vncserver@:5.service
+    systemctl status vncserver@:5.service
+    systemctl enable vncserver@:5.service
+
+Set vncpasswd  
+
+    su - <USER>
+    vncpasswd
+    ls ~/.vnc/
+    
+Check if is running  
+
+    systemctl status vncserver@:5.service
+    netstat -anpt | grep vnc
+
+Add to firewall  
+
+    firewall-cmd --permanent --zone=public --add-port=5905/tcp
+    firewall-cmd --reload
+
+ 
+
