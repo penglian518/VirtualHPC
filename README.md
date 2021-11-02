@@ -51,3 +51,5 @@ Configuration files to build a small HPC cluster based on virtual machines.
 * Filesystem Security
 * Software Security
 
+# [Week 12: Setting up Win10 server](Week_12.md)
+
